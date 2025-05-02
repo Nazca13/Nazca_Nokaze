@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ini kalender ku</title>
+    <style>
+        :root {
+            --warna-utama: #4a6fa5;
+            --warna-sekunder: #f8f9fa;
+            --warna-hover: #e9ecef;
+            --warna-teks: #333;
+            --teks-muda: #6c757d;
+            --putih: #fff;
+            --warna-border: #dee2e6;
+            --warna-error: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--warna-sekunder);
+            color: var(--warna-teks);
+            padding: 15px;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--putih);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header-kalender {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--warna-utama);
+            color: var(--putih);
+        }
+
+        .bulan-tahun {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .navigasi {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tombol-nav {
+            background: none;
+            border: none;
+            color: var(--putih);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            min-width: 40px;
+            min-height: 40px;
+        }
+
+        .tombol-nav:hover, .tombol-nav:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hari-minggu {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background-color: var(--warna-utama);
+            color: var(--putih);
+            padding: 10px 0;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .grid-hari {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: var(--warna-border);
+        }
+
+        .hari {
+            aspect-ratio: 1;
+            padding: 8px;
+            background-color: var(--putih);
+            position: relative;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .hari:active {
+            transform: scale(0.98);
+        }
+
+        .nomor-hari {
+            font-weight: 600;
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .hari.kosong {
+            background-color: var(--warna-sekunder);
+            color: var(--teks-muda);
+        }
+
+        .tambah-acara {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 22px;
+            height: 22px;
+            background-color: var(--warna-utama);
+            color: var(--putih);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: none;
+            pointer-events: auto;
+        }
+
+        .hari:hover .tambah-acara, .hari:active .tambah-acara {
+            opacity: 1;
+        }
+
+        .acara {
+            font-size: 0.75rem;
+            padding: 3px;
+            margin: 2px 0;
+            background-color: #e3f2fd;
+            border-radius: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.2s;
+        }
+
+        .acara:active {
+            background-color: #bbdefb;
+        }
+
+        .acara-panjang {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }
+
+        .hari-ini {
+            background-color: #fff8e1;
+        }
+
+        .hari-ini .nomor-hari {
+            color: var(--warna-utama);
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .konten-modal {
+            background-color: var(--putih);
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--warna-border);
+        }
+
+        .judul-modal {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--warna-utama);
+        }
+
+        .tombol-tutup {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--teks-muda);
+            padding: 5px;
+        }
+
+        .input-acara {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--warna-border);
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 120px;
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .tombol {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        .tombol-primer {
+            background-color: var(--warna-utama);
+            color: var(--putih);
+        }
+
+        .tombol-primer:active {
+            background-color: #3a5a80;
+        }
+
+        .tombol-sekunder {
+            background-color: var(--warna-sekunder);
+            color: var(--warna-teks);
+        }
+
+        .tombol-sekunder:active {
+            background-color: #e2e6ea;
+        }
+
+        .tombol-error {
+            background-color: var(--warna-error);
+            color: var(--putih);
+        }
+
+        .tombol-error:active {
+            background-color: #d32f2f;
+        }
+
+        @media (min-width: 600px) {
+            .container {
+                max-width: 900px;
+            }
+            
+            .hari-minggu {
+                font-size: 1rem;
+            }
+            
+            .nomor-hari {
+                font-size: 1rem;
+            }
+            
+            .acara {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .hari {
+                padding: 5px;
+            }
+            
+            .nomor-hari {
+                font-size: 0.8rem;
+            }
+            
+            .acara {
+                font-size: 0.7rem;
+            }
+            
+            .tombol {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-kalender">
+            <div class="bulan-tahun">Mei 2025</div>
+            <div class="navigasi">
+                <button class="tombol-nav" id="bulan-sebelumnya">&lt;</button>
+                <button class="tombol-nav" id="hari-ini">Today</button>
+                <button class="tombol-nav" id="bulan-selanjutnya">&gt;</button>
+            </div>
+        </div>
+        
+        <div class="hari-minggu">
+            <div>Min</div>
+            <div>Sen</div>
+            <div>Sel</div>
+            <div>Rab</div>
+            <div>Kam</div>
+            <div>Jum</div>
+            <div>Sab</div>
+        </div>
+        
+        <div class="grid-hari" id="hari-kalender">
+            <!-- Hari akan diisi oleh JavaScript -->
+        </div>
+    </div>
+    
+    <div class="modal" id="modal-acara">
+        <div class="konten-modal">
+            <div class="modal-header">
+                <div class="judul-modal" id="tanggal-modal">Tambah Acara</div>
+                <button class="tombol-tutup" id="tutup-modal">&times;</button>
+            </div>
+            <textarea class="input-acara" id="teks-acara" placeholder="Masukkan detail acara..."></textarea>
+            <div class="modal-footer">
+                <button class="tombol tombol-error" id="hapus-acara">Hapus</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="tombol tombol-sekunder" id="batal-acara">Batal</button>
+                    <button class="tombol tombol-primer" id="simpan-acara">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi tanggal
+            let tanggalSekarang = new Date();
+            let bulanSekarang = tanggalSekarang.getMonth();
+            let tahunSekarang = tanggalSekarang.getFullYear();
+            
+            // Elemen DOM
+            const elemenKalender = document.getElementById('hari-kalender');
+            const elemenBulanTahun = document.querySelector('.bulan-tahun');
+            const btnBulanSebelumnya = document.getElementById('bulan-sebelumnya');
+            const btnBulanSelanjutnya = document.getElementById('bulan-selanjutnya');
+            const btnHariIni = document.getElementById('hari-ini');
+            const modalAcara = document.getElementById('modal-acara');
+            const btnTutupModal = document.getElementById('tutup-modal');
+            const btnBatalAcara = document.getElementById('batal-acara');
+            const btnSimpanAcara = document.getElementById('simpan-acara');
+            const btnHapusAcara = document.getElementById('hapus-acara');
+            const inputAcara = document.getElementById('teks-acara');
+            const elemenTanggalModal = document.getElementById('tanggal-modal');
+            
+            // Data acara
+            let acara = JSON.parse(localStorage.getItem('acaraKalender')) || {};
+            let tanggalTerpilih = null;
+            let acaraSedangDiedit = null;
+            
+            // Nama bulan dan hari
+            const namaBulan = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            
+            // Inisialisasi kalender
+            renderKalender(bulanSekarang, tahunSekarang);
+            
+            // Event listeners
+            btnBulanSebelumnya.addEventListener('click', navigasiBulanSebelumnya);
+            btnBulanSelanjutnya.addEventListener('click', navigasiBulanSelanjutnya);
+            btnHariIni.addEventListener('click', kembaliKeHariIni);
+            btnTutupModal.addEventListener('click', tutupModal);
+            btnBatalAcara.addEventListener('click', tutupModal);
+            btnSimpanAcara.addEventListener('click', simpanAcara);
+            btnHapusAcara.addEventListener('click', hapusAcara);
+            
+            // Fungsi navigasi
+            function navigasiBulanSebelumnya() {
+                bulanSekarang--;
+                if (bulanSekarang < 0) {
+                    bulanSekarang = 11;
+                    tahunSekarang--;
+                }
+                renderKalender(bulanSekarang, tahunSekarang);
+            }
+            
+            function navigasiBulanSelanjutnya() {
+                bulanSekarang++;
+                if (bulanSekarang > 11) {
+                    bulanSekarang = 0;
+                    tahunSekarang++;
+                }
+                renderKalender(bulanSekarang, tahunSekarang);
+            }
+            
+            function kembaliKeHariIni() {
+                tanggalSekarang = new Date();
+                bulanSekarang = tanggalSekarang.getMonth();
+                tahunSekarang = tanggalSekarang.getFullYear();
+                renderKalender(bulanSekarang, tahunSekarang);
+            }
+            
+            // Fungsi render kalender
+            function renderKalender(bulan, tahun) {
+                elemenBulanTahun.textContent = `${namaBulan[bulan]} ${tahun}`;
+                elemenKalender.innerHTML = '';
+                
+                const hariPertama = new Date(tahun, bulan, 1);
+                const hariTerakhir = new Date(tahun, bulan + 1, 0);
+                const jumlahHari = hariTerakhir.getDate();
+                const hariAwal = hariPertama.getDay();
+                const hariBulanSebelumnya = new Date(tahun, bulan, 0).getDate();
+                
+                // Hari dari bulan sebelumnya
+                for (let i = 0; i < hariAwal; i++) {
+                    const elemenHari = buatElemenHari(hariBulanSebelumnya - hariAwal + i + 1, true);
+                    elemenKalender.appendChild(elemenHari);
+                }
+                
+                // Hari dari bulan ini
+                const hariIni = new Date();
+                for (let i = 1; i <= jumlahHari; i++) {
+                    const tanggalHari = new Date(tahun, bulan, i);
+                    const apakahHariIni = tanggalHari.toDateString() === hariIni.toDateString();
+                    const elemenHari = buatElemenHari(i, false, apakahHariIni, tanggalHari);
+                    elemenKalender.appendChild(elemenHari);
+                }
+                
+                // Hari dari bulan berikutnya
+                const totalSel = hariAwal + jumlahHari;
+                const sisaSel = totalSel % 7 === 0 ? 0 : 7 - (totalSel % 7);
+                for (let i = 1; i <= sisaSel; i++) {
+                    const elemenHari = buatElemenHari(i, true);
+                    elemenKalender.appendChild(elemenHari);
+                }
+            }
+            
+            // Fungsi membuat elemen hari
+            function buatElemenHari(nomorHari, kosong = false, hariIni = false, tanggal = null) {
+                const elemenHari = document.createElement('div');
+                elemenHari.className = `hari${kosong ? ' kosong' : ''}${hariIni ? ' hari-ini' : ''}`;
+                
+                // Nomor hari
+                const elemenNomorHari = document.createElement('div');
+                elemenNomorHari.className = 'nomor-hari';
+                elemenNomorHari.textContent = nomorHari;
+                elemenHari.appendChild(elemenNomorHari);
+                
+                if (!kosong) {
+                    // Tombol tambah acara
+                    const tombolTambah = document.createElement('button');
+                    tombolTambah.className = 'tambah-acara';
+                    tombolTambah.textContent = '+';
+                    tombolTambah.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        bukaModalAcara(tanggal);
+                    });
+                    elemenHari.appendChild(tombolTambah);
+                    
+                    // Cek ada acara atau tidak
+                    const kunciTanggal = tanggal.toDateString();
+                    if (acara[kunciTanggal]) {
+                        const elemenAcara = document.createElement('div');
+                        elemenAcara.className = 'acara';
+                        elemenAcara.textContent = acara[kunciTanggal];
+                        
+                        // Potong teks jika terlalu panjang
+                        if (acara[kunciTanggal].length > 30) {
+                            elemenAcara.textContent = acara[kunciTanggal].substring(0, 27) + '...';
+                            elemenAcara.title = acara[kunciTanggal];
+                        }
+                        
+                        elemenAcara.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            bukaModalAcara(tanggal, true);
+                        });
+                        
+                        elemenHari.appendChild(elemenAcara);
+                    }
+                    
+                    // Klik hari untuk buka modal
+                    elemenHari.addEventListener('click', () => {
+                        bukaModalAcara(tanggal);
+                    });
+                }
+                
+                return elemenHari;
+            }
+            
+            // Fungsi modal acara
+            function bukaModalAcara(tanggal, bacaSaja = false) {
+                tanggalTerpilih = tanggal;
+                const kunciTanggal = tanggal.toDateString();
+                acaraSedangDiedit = acara[kunciTanggal] || '';
+                
+                // Format tanggal untuk ditampilkan
+                const opsiTanggal = { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                };
+                const stringTanggal = tanggal.toLocaleDateString('id-ID', opsiTanggal);
+                elemenTanggalModal.textContent = stringTanggal;
+                
+                // Isi teks acara
+                inputAcara.value = acaraSedangDiedit;
+                
+                // Tampilkan tombol hapus jika ada acara
+                btnHapusAcara.style.display = acaraSedangDiedit ? 'block' : 'none';
+                
+                // Mode baca saja (klik dari acara yang sudah ada)
+                if (bacaSaja) {
+                    inputAcara.readOnly = true;
+                    btnSimpanAcara.style.display = 'none';
+                    btnBatalAcara.textContent = 'Tutup';
+                } else {
+                    inputAcara.readOnly = false;
+                    btnSimpanAcara.style.display = 'block';
+                    btnBatalAcara.textContent = 'Batal';
+                }
+                
+                modalAcara.style.display = 'flex';
+                inputAcara.focus();
+            }
+            
+            function tutupModal() {
+                modalAcara.style.display = 'none';
+                tanggalTerpilih = null;
+                acaraSedangDiedit = null;
+                inputAcara.value = '';
+                inputAcara.readOnly = false;
+            }
+            
+            function simpanAcara() {
+                if (tanggalTerpilih) {
+                    const kunciTanggal = tanggalTerpilih.toDateString();
+                    acara[kunciTanggal] = inputAcara.value.trim();
+                    localStorage.setItem('acaraKalender', JSON.stringify(acara));
+                    renderKalender(bulanSekarang, tahunSekarang);
+                    tutupModal();
+                }
+            }
+            
+            function hapusAcara() {
+                if (tanggalTerpilih && confirm('Apakah Anda yakin ingin menghapus acara ini?')) {
+                    const kunciTanggal = tanggalTerpilih.toDateString();
+                    delete acara[kunciTanggal];
+                    localStorage.setItem('acaraKalender', JSON.stringify(acara));
+                    renderKalender(bulanSekarang, tahunSekarang);
+                    tutupModal();
+                }
+            }
+            
+            // Handle klik di luar modal
+            window.addEventListener('click', (e) => {
+                if (e.target === modalAcara) {
+                    tutupModal();
+                }
+            });
+            
+            // Handle keyboard
+            document.addEventListener('keydown', (e) => {
+                if (modalAcara.style.display === 'flex' && e.key === 'Escape') {
+                    tutupModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
